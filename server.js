@@ -5,7 +5,7 @@ import { GoogleGenAI } from "@google/genai";
 const app = express();
 app.use(cors());
 app.use(express.json());
-
+app.use(express.static("public"));
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.post("/chat", async (req, res) => {
