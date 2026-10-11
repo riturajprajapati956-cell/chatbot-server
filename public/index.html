@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1530" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <title>My AI Chatbot</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; font-family: sans-serif; background: #f5f5f5; }
+    #app { display: flex; flex-direction: column; height: 100%; max-width: 600px; margin: 0 auto; }
+    h1 { text-align: center; font-size: 22px; margin: 16px 0 8px; }
+    #chat { flex: 1; overflow-y: auto; padding: 12px; }
+    .bubble { padding: 12px; border-radius: 16px; margin: 6px 0; max-width: 80%; font-size: 16px; white-space: pre-wrap; }
+    .user { background: #2563eb; color: #fff; margin-left: auto; }
+    .bot { background: #e5e7eb; color: #111; margin-right: auto; }
+    #typing { margin-left: 16px; color: #666; height: 20px; font-size: 14px; }
+    #row { display: flex; gap: 8px; padding: 10px; background: #fff; }
+    #input { flex: 1; border: 1px solid #ccc; border-radius: 20px; padding: 10px 14px; font-size: 16px; }
+    #send { background: #2563eb; color: #fff; border: none; border-radius: 20px; padding: 0 18px; font-weight: bold; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>My AI Chatbot</h1>
+    <div id="chat"></div>
+    <div id="typing"></div>
+    <div id="row">
+      <input id="input" placeholder="Type a message..." autocomplete="off" />
+      <button id="send">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+    const sendBtn = document.getElementById("send");
+    const typing = document.getElementById("typing");
+
+    let messages = [];
+    let loading = false;
+
+    function addBubble(text, role) {
+      const div = document.createElement("div");
+      div.className = "bubble " + (role === "user" ? "user" : "bot");
+      div.textContent = text;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = input.value.trim();
+      if (!text || loading) return;
+
+      messages.push({ role: "user", content: text });
+      addBubble(text, "user");
+      input.value = "";
+      loading = true;
+      typing.textContent = "Typing...";
+
+      try {
+        const response = await fetch("/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: messages }),
+        });
+        const data = await response.json();
+        if (!data.reply) throw new Error("No reply");
+
+        messages.push({ role: "assistant", content: data.reply });
+        addBubble(data.reply, "assistant");
+      } catch (error) {
+        addBubble("Sorry, something went wrong.", "assistant");
+      }
+
+      loading = false;
+      typing.textContent = "";
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html>
