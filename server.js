@@ -6,7 +6,36 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
+
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+// If the first model is busy, the server tries the next one
+const MODELS = ["gemini-flash-latest", "gemini-flash-lite-latest"];
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function askGemini(contents) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    for (const model of MODELS) {
+      try {
+        const response = await ai.models.generateContent({
+          model: model,
+          contents: contents,
+          config: {
+            systemInstruction: "You are a friendly, helpful assistant.",
+          },
+        });
+        return response.text;
+      } catch (error) {
+        console.error(model + " failed with status " + error.status);
+      }
+    }
+    await wait(2000); // pause 2 seconds, then try again
+  }
+  throw new Error("All models are busy");
+}
 
 app.post("/chat", async (req, res) => {
   try {
@@ -17,15 +46,8 @@ app.post("/chat", async (req, res) => {
       parts: [{ text: m.content }],
     }));
 
-    const response = await ai.models.generateContent({
-      model: "gemini-flash-latest",
-      contents: contents,
-      config: {
-        systemInstruction: "You are a friendly, helpful assistant.",
-      },
-    });
-
-    res.json({ reply: response.text });
+    const reply = await askGemini(contents);
+    res.json({ reply: reply });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Something went wrong" });
