@@ -1,0 +1,38 @@
+{
+  "name": "Orion AI Assistant",
+  "short_name": "Orion",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1530",
+  "theme_color": "#0b1530",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "id": "/",
+  "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "orientation": "portrait",
+  "categories": [
+    "productivity",
+    "utilities"
+  ],
+  "description": "Orion AI Assistant is a friendly AI chat assistant. Ask questions, get ideas, and send photos for it to describe."
+}
